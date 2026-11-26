@@ -45,7 +45,13 @@ interface Context {
   invited: Set<string>;
   prior: Map<string, Connection>;
   now: Date;
+  /** Connections.csv has a Company or a Position column. */
+  jobColumns: boolean;
 }
+
+/** What archive_load says when the export has neither job column. */
+const NO_JOB_COLUMNS =
+  'This export has no Company or Position column. Titles from an earlier load were kept where it knew them. Nobody is rated empty for a missing column, and rules 7 to 9 only match people an earlier load knew. The live profile page decides.';
 
 /** The person a message is from: its sender's profile URL, or the name in `from`. */
 const keyOf = (m: Message) => normUrl(m['sender profile url'] ?? '') || (m.from ?? '').toLowerCase();
@@ -153,14 +159,18 @@ function connectionOf(p: Record<string, string>, x: Context): Connection {
   const s = x.signals.get(url) ?? { sent: 0, received: 0, started: false, pitchFirst: false };
   const was = x.prior.get(url);
   const [first, last, email] = [cell('first name'), cell('last name'), cell('email address').toLowerCase()];
+  // An export without the job columns keeps the company and position an earlier load knew; a blank it never saw is not "empty".
+  const job = (key: 'company' | 'position') => (x.jobColumns ? cell(key) : (was?.[key] ?? ''));
+  const jobKnown = x.jobColumns || (was !== undefined && !was.jobUnknown);
   const full = `${first} ${last}`.trim().toLowerCase();
   const row: Row = {
-    first, last, url, email, company: cell('company'), position: cell('position'), connected: isoDate(cell('connected on')),
+    first, last, url, email, company: job('company'), position: job('position'), connected: isoDate(cell('connected on')),
     sent: s.sent, received: s.received, started: s.started, pitchFirst: s.pitchFirst,
     endorsed: x.endorsed.has(url) || x.endorsed.has(full),
     invited: x.invited.has(url) || x.invited.has(full),
     keep: x.keep.urls.has(url) || (email !== '' && x.keep.emails.has(email)) || x.keep.names.has(full),
     mark: was?.mark,
+    ...(jobKnown ? {} : { jobUnknown: true }),
   };
   return { ...row, state: was?.state, note: was?.note, ...rate(row, x.rules, x.now) };
 }
@@ -177,8 +187,10 @@ export async function archiveLoad(input: { path: string }, config: Config, env: 
   const table = (name: string, anchor: string) => (files.has(name) ? records(readFileSync(files.get(name)!, 'utf8'), anchor) : []);
   const rules = loadRules(env);
   const keep = loadKeep(rules);
-  if (!files.has('connections.csv')) throw new LinkError('The export has no Connections.csv. Request the full archive, or select Connections when you request it.');
+  if (!files.has('connections.csv')) throw new LinkError('The export has no Connections.csv. Request the full archive at linkedin.com/mypreferences/d/download-my-data.');
   const people = table('connections.csv', 'first name');
+  // LinkedIn's Download my data page says the export has no current companies or job titles as of December 2026 (read 2026-11-26).
+  const jobColumns = people.length === 0 || people.some((p) => 'company' in p || 'position' in p);
 
   // Messages: who the owner is (the most frequent sender, or LINKEN_OWNER_URL), then per person what was sent and received.
   const messages = table('messages.csv', 'conversation id');
@@ -193,10 +205,10 @@ export async function archiveLoad(input: { path: string }, config: Config, env: 
       .filter((r) => (r.direction ?? '').toUpperCase() === 'OUTGOING')
       .flatMap((r) => [normUrl(r.inviteeprofileurl ?? ''), (r.to ?? '').trim().toLowerCase()].filter(Boolean)),
   );
-  const context = { rules, keep, signals, endorsed: endorsedIn(files), invited, prior: priorConnections(config), now: new Date() };
+  const context = { rules, keep, signals, endorsed: endorsedIn(files), invited, prior: priorConnections(config), now: new Date(), jobColumns };
   const out = people.map((p) => connectionOf(p, context));
   writeJson(connectionsFile(config), out);
   dates.push(...out.map((c) => c.connected));
   const seen = dates.filter(Boolean).sort();
-  return { connections: out.length, by_tier: countBy(out, 'tier'), by_reason: countBy(out, 'reason'), from: seen[0] ?? null, to: seen.at(-1) ?? null, owner_found: owner !== '', inbox_waiting: inbox.length };
+  return { connections: out.length, by_tier: countBy(out, 'tier'), by_reason: countBy(out, 'reason'), from: seen[0] ?? null, to: seen.at(-1) ?? null, owner_found: owner !== '', inbox_waiting: inbox.length, ...(jobColumns ? {} : { note: NO_JOB_COLUMNS }) };
 }

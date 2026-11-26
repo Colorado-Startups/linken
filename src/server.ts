@@ -121,7 +121,7 @@ function registerArchiveTools(deps: Deps): void {
   const { config, env } = deps;
   tool(deps, 'archive_load', {
     title: 'Load a LinkedIn data export',
-    description: 'Reads a LinkedIn data export, the .zip or its unpacked folder, rates every connection with the rules in rules/rater.default.json plus the optional LINKEN_RATER overlay, and saves the result under LINKEN_HOME, with the message threads waiting on the member for inbox_next. A zip is unpacked into LINKEN_HOME/archive. Returns counts by tier and by reason and the export date range. A newer export keeps earlier marks and states. It does not contact LinkedIn and changes no connection.',
+    description: 'Reads a LinkedIn data export, the .zip or its unpacked folder, rates every connection with the rules in rules/rater.default.json plus the optional LINKEN_RATER overlay, and saves the result under LINKEN_HOME, with the message threads waiting on the member for inbox_next. A zip is unpacked into LINKEN_HOME/archive. Returns counts by tier and by reason and the export date range. A newer export keeps earlier marks and states. When the export has no Company and Position columns, it keeps the titles an earlier load knew, rates nobody empty for the missing columns, and returns a note. It does not contact LinkedIn and changes no connection.',
     inputSchema: z.strictObject({ path: z.string().min(1).describe('Absolute path to the export .zip or to the unpacked folder.') }),
     annotations: { readOnlyHint: false, ...local },
   }, (input) => archiveLoad(input, config, env));
