@@ -57,7 +57,7 @@ Tests: [helper.test.ts](../tests/helper.test.ts) (H), [launcher.test.ts](../test
 | Token never on stdout, stderr or a command line | H "the token never appears in the output", "run as a program"; L "the token variable is in no command's arguments"; T "a good token goes to security on stdin" |
 | Node gets `HOME` and the token only (macOS adds `__CF_USER_TEXT_ENCODING` itself); the spec arrives unchanged | L "the launcher hands Node the token through a pipe" |
 | The launcher is the reviewed five lines, and executable | L "the launcher is the reviewed five lines" |
-| The installer refuses a Node the member can write before it runs it, by its real path; a named Node gets the same checks | I "a Node the member can write is refused, and it is never run", "the real path decides", "a named Node gets the same checks" |
+| The installer refuses a Node the member can write before it runs it, by its real path and its folder; a named Node gets the same checks; a write test that cannot run is a refusal | I "a Node the member can write is refused, and it is never run", "the real path decides", "the folder decides too", "a named Node gets the same checks", "a write test that cannot run is a refusal" |
 | A bad token starts nothing or stores nothing | L "an empty token…"; T "a cancel, an empty answer or a bad character" |
 
 ## Limits

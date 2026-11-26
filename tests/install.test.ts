@@ -31,22 +31,23 @@ function stage(major = 26) {
   for (const folder of [bin, open, shut]) mkdirSync(folder);
   script(join(bin, 'id'), 'echo 0');
   script(join(bin, 'uname'), 'echo Darwin');
-  script(join(bin, 'sudo'), 'shift 2\n"$@"');
+  script(join(bin, 'sudo'), '[ "$2" != ghost ] || { echo "sudo: unknown user ghost" >&2; exit 1; }\nshift 2\n"$@"');
   script(join(bin, 'install'), `echo reached > ${dir}/install\nexit ${REACHED_INSTALL}`);
   const node = `echo ran >> ${dir}/node-ran\necho ${major}`;
   script(join(open, 'node'), node);
   script(join(shut, 'node'), node);
+  script(join(open, 'locked'), node);
   symlinkSync(join(open, 'node'), join(shut, 'link-to-open'));
-  chmodSync(join(shut, 'node'), 0o555);
-  chmodSync(shut, 0o555);
-  return { dir, bin, open: join(open, 'node'), shut: join(shut, 'node'), link: join(shut, 'link-to-open') };
+  for (const locked of [join(open, 'locked'), join(shut, 'node'), shut]) chmodSync(locked, 0o555);
+  const link = join(shut, 'link-to-open');
+  return { dir, bin, open: join(open, 'node'), locked: join(open, 'locked'), shut: join(shut, 'node'), link };
 }
 
 /** Runs install.sh as the fake root. `onPath` is the Node that `su -l member -c 'command -v node'` finds. */
-function run(staged: ReturnType<typeof stage>, onPath: string, named?: string) {
+function run(staged: ReturnType<typeof stage>, onPath: string, named?: string, account = 'member') {
   script(join(staged.bin, 'su'), `echo called >> ${staged.dir}/su\necho ${onPath}`);
   const result = spawnSync('/bin/sh', [SCRIPT, ...(named === undefined ? [] : [named])], {
-    env: { PATH: `${staged.bin}:/usr/bin:/bin`, SUDO_USER: 'member' },
+    env: { PATH: `${staged.bin}:/usr/bin:/bin`, SUDO_USER: account },
     encoding: 'utf8',
   });
   const happened = (name: string) => existsSync(join(staged.dir, name));
@@ -70,6 +71,22 @@ test('the real path decides: a link to a writable Node is refused by its target'
   assert.equal(result.status, 1);
   assert.ok(result.stderr.includes(`Your account can write ${realpathSync(staged.open)}.`), result.stderr);
   assert.equal(result.nodeRan, false);
+});
+
+test('the folder decides too: a Node the member cannot write, in a folder the member can, is refused', () => {
+  const staged = stage();
+  const result = run(staged, staged.locked);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /Your account can write /);
+  assert.equal(result.nodeRan || result.wrote, false);
+});
+
+test('a write test that cannot run is a refusal, not a pass', () => {
+  const staged = stage();
+  const result = run(staged, staged.shut, staged.open, 'ghost');
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /Cannot run the write test as ghost/);
+  assert.equal(result.nodeRan || result.wrote, false, 'a failed sudo must not read as "cannot write"');
 });
 
 test('a Node the member cannot write passes every check', { skip: AS_ROOT }, () => {

@@ -16,6 +16,8 @@ case "$NODE" in *[!A-Za-z0-9._/+-]*) echo "Unsupported characters in the Node pa
 # this script is root. macOS keeps realpath in /bin (seen on 27.2), other systems in /usr/bin.
 RP=/bin/realpath; [ -x "$RP" ] || RP=/usr/bin/realpath
 REAL="$("$RP" "$NODE")"
+# A sudo that fails would read as "cannot write", so prove it can run as that account before trusting the answer.
+sudo -u "$U" true || { echo "Cannot run the write test as $U. Run it with sudo from your own account." >&2; exit 1; }
 if sudo -u "$U" test -w "$REAL" || sudo -u "$U" test -w "$(dirname "$REAL")"; then
   echo "Your account can write $REAL. Install a root-owned Node from nodejs.org, then name it:" >&2
   echo "  sudo ./install.sh /usr/local/bin/node" >&2; exit 1
