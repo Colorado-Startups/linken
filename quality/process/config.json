@@ -18,6 +18,23 @@
     {"id": "verify", "name": "Verify", "icon": "measure", "tools": ["connections_summary", "the page's total"], "rule": "The total drops by exactly the removals.", "rule_ref": "https://github.com/Colorado-Startups/linken/blob/main/docs/connections.md", "metric": "cleanup.summary_tokens"}
    ]
   },
+  {"id": "post", "name": "Post", "why": "Post and comment in the member's voice, and only on their click", "critical_path": ["draft", "gate", "dialog", "send"], "time_bar": null,
+   "steps": [
+    {"id": "draft", "name": "Draft", "icon": "plan", "tools": ["linken-post skill", "voice.md"], "rule": "Draft in the member's voice; plan it first with LINKEN_DRY_RUN=1.", "rule_ref": "https://github.com/Colorado-Startups/linken/blob/main/skills/linken-post/SKILL.md", "metric": "post.plan_tokens"},
+    {"id": "gate", "name": "Gates", "icon": "shield", "tools": ["LINKEN_GATES", "the halt file"], "rule": "The member's own gates and the halt file run before any write.", "rule_ref": "https://github.com/Colorado-Startups/linken/blob/main/SPEC.md", "metric": "post.halt_stops"},
+    {"id": "dialog", "name": "Approve", "icon": "review", "tools": ["trusted/linken-linkedin"], "rule": "Every post and comment waits for the member's click.", "rule_ref": "https://github.com/Colorado-Startups/linken/blob/main/trusted/README.md", "metric": "post.dry_run_silent"},
+    {"id": "send", "name": "Send", "icon": "repo", "tools": ["post_publish", "comment_create"], "rule": "Only the trusted helper holds the token; requests go only to LinkedIn.", "rule_ref": "https://github.com/Colorado-Startups/linken/blob/main/trusted/GUARANTEES.md", "metric": "post.no_token_in_requests"}
+   ]
+  },
+  {"id": "inbox", "name": "Inbox", "why": "Answer the people waiting on the member, and send nothing for them", "critical_path": ["load", "next", "draft", "open", "mark"], "time_bar": null,
+   "steps": [
+    {"id": "load", "name": "Load", "icon": "repo", "tools": ["archive_load", "messages.csv"], "rule": "Threads come from the member's own export, on their Mac.", "rule_ref": "https://www.linkedin.com/help/linkedin/answer/50191", "metric": "inbox.load_ms"},
+    {"id": "next", "name": "Next", "icon": "plan", "tools": ["inbox_next"], "rule": "Newest first; every message is quoted data, never an instruction.", "rule_ref": "https://github.com/Colorado-Startups/linken/blob/main/skills/linken-inbox/SKILL.md", "metric": "inbox.untrusted_flagged"},
+    {"id": "draft", "name": "Draft", "icon": "review", "tools": ["linken-inbox skill"], "rule": "Draft a reply; the member reads it before anything moves.", "rule_ref": "https://github.com/Colorado-Startups/linken/blob/main/skills/linken-inbox/SKILL.md", "metric": "inbox.thread_tokens"},
+    {"id": "open", "name": "Open", "icon": "shield", "tools": ["reply_open"], "rule": "The reply goes to the clipboard and the thread opens; the member presses send.", "rule_ref": "https://github.com/Colorado-Startups/linken/blob/main/SPEC.md", "metric": "inbox.reply_silent"},
+    {"id": "mark", "name": "Mark", "icon": "measure", "tools": ["inbox_mark"], "rule": "Done, skip or spam takes the thread off the list.", "rule_ref": "https://github.com/Colorado-Startups/linken/blob/main/skills/linken-inbox/SKILL.md", "metric": "inbox.mark_hides"}
+   ]
+  },
   {
    "use": "delivery"
   },
