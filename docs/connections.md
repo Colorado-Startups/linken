@@ -28,6 +28,16 @@ Your export, on your Mac. Linken removes nothing itself. Who goes: [How Linken d
 
 A REMOVE tier removes nobody: [levels](decide.md) and the live page decide.
 
+LinkedIn's Download my data page says the export has no current companies or job titles as of December 2026 (read 2026-11-26).
+
+| Export | Rules 7 to 9 |
+|---|---|
+| Carries a company and a position for someone | As above |
+| Carries none, and an earlier load saved the person's title | Use what that load saved |
+| Carries none, and no load ever saved a title | Skipped. Nobody is `empty` for data the export does not carry. `archive_load` returns a `note` |
+
+A header over blank cells counts as carrying none. Keep the last export that has titles. Loading it is the only way to bring titles back.
+
 ## 2 · Check and remove: the profile lane
 
 ```mermaid

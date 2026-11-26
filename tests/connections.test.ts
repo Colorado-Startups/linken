@@ -41,6 +41,7 @@ test('the rater: one case per rule, first match wins', () => {
     ['8 mission in position', { position: 'Fusion engineer' }, 'KEEP', 'mission'],
     ['8 place in company', { company: 'Denver Bank' }, 'KEEP', 'mission'],
     ['9 empty', { position: '', company: ' ' }, 'REMOVE', 'empty'],
+    ['9 not empty: the export carried no job data', { position: '', company: '', jobUnknown: true }, 'REMOVE', 'low'],
     ['10 low', {}, 'REMOVE', 'low'],
     ['10 not low: messages', { received: 1 }, 'REVIEW', 'other'],
     ['11 other', { connected: '2026-03-01' }, 'REVIEW', 'other'],

@@ -52,6 +52,8 @@ export interface Row {
   keep: boolean;
   /** The owner's override from connections_mark. */
   mark?: 'keep' | 'remove';
+  /** The export carried no company or no position, and no earlier load saved them, so a blank says nothing. */
+  jobUnknown?: boolean;
 }
 
 /** The keep lists: profile URLs, emails and lower-case "first last" names. */
@@ -146,7 +148,7 @@ const RULES: Rule[] = [
   when((row) => row.pitchFirst && row.sent === 0, 'REMOVE', 'pitch'), // 6
   when((row, rules) => hasWord(row.position, rules.sales), 'REMOVE', 'sales'), // 7
   when((row, rules) => hasWord(`${row.position} ${row.company}`, [...rules.mission, ...rules.places]), 'KEEP', 'mission'), // 8
-  when((row) => !row.position.trim() && !row.company.trim(), 'REMOVE', 'empty'), // 9
+  when((row) => !row.jobUnknown && !row.position.trim() && !row.company.trim(), 'REMOVE', 'empty'), // 9: a blank the export showed
   when((row, rules, days) => row.sent + row.received === 0 && days > rules.low_days, 'REMOVE', 'low'), // 10
 ];
 
