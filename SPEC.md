@@ -10,9 +10,10 @@ This page says what Linken is, what it does, and what it will not do. The [READM
 | --- | --- |
 | 👤 A LinkedIn member | Posts and replies in their own voice, with less time spent |
 | 🧹 A member with a messy network | Fewer spam connections, with nobody who matters removed |
+| 👥 A member who wants to grow | A short list of people worth knowing, drawn from their own data |
 | 🛠️ A builder | A small, readable MCP server to learn from or extend |
 
-## 2 · The three jobs
+## 2 · The jobs
 
 ```mermaid
 flowchart LR
@@ -25,6 +26,9 @@ flowchart LR
   subgraph Clean["🧹 Clean up"]
     C1[Your export] --> C2[Rate] --> C3[Profile page decides] --> C4[Remove, paced]
   end
+  subgraph Grow["👥 Grow (planned)"]
+    G1[Your export] --> G2[Suggest people] --> G3{👤 You invite?} --> G4[Profile opens for you]
+  end
 ```
 
 | Job | Tools | Reads | Writes |
@@ -32,6 +36,7 @@ flowchart LR
 | ✍️ Post | `post_publish`, `comment_create` | Your draft | A post or comment, after your click |
 | 📥 Inbox | `inbox_next`, `inbox_mark`, `reply_open` | Your data export | A local mark; the reply opens for you to send |
 | 🧹 Clean up | `connections_summary`, `connections_list`, `connections_next`, `connections_check`, `connections_check_list`, `connections_mark` | Your data export, the live profile page | A local mark; you remove in LinkedIn, paced |
+| 👥 Grow (planned) | `people_suggest`, `people_mark` | Your data export only | A local mark; the profile opens and you send the invite |
 | ⚙️ Setup | `archive_load`, `linken_status` | `~/.linken` | Nothing on LinkedIn |
 
 ## 3 · Rules that never bend
@@ -46,12 +51,22 @@ flowchart LR
 | 6 | 🧪 A dev session never calls LinkedIn live: it uses `LINKEN_DRY_RUN=1` | `src/core.ts` |
 | 7 | 🙈 No member data in this repo: fixtures are fictional | `tests/privacy.test.ts` |
 
+### 👥 Grow, planned (#103)
+
+| Rule | Detail |
+| --- | --- |
+| 📦 Source | Only your own export: invitations you received, people who wrote to you, people you wrote to but never connected with |
+| 🙅 Never | No search of LinkedIn, no stranger lists, no bought data |
+| 👤 You act | Linken opens the profile. You send the invite in LinkedIn |
+| ⏱️ Pace | Same halt file and daily caps as clean-up |
+| 🧭 Fit | Ranked by your `mission` and `places` words in `~/.linken/rater.json` |
+
 ## 4 · Out of scope
 
 | Not doing | Why |
 | --- | --- |
 | 🤖 Posting on a schedule, or without a click | A post is the member's own act |
-| 📨 Sending messages or invitations for you | `reply_open` puts the reply on your clipboard; you press Enter |
+| 📨 Sending messages or invitations for you | `reply_open` and Grow open LinkedIn for you; you press send |
 | 🕷️ Scraping other people's profiles in bulk | Only the one page you open is read, one at a time |
 | ☁️ A hosted service | Local only: no server holds anyone's token or data |
 | 📈 Growth hacks (engagement pods, auto-likes) | They break LinkedIn's terms and the member's trust |
