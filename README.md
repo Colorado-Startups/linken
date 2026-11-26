@@ -26,11 +26,18 @@ flowchart LR
 
 ## Install
 
+macOS, Node 26 or newer. Install first: step 2 needs the `linken-token` that step 1 installs. If `install.sh` refuses your Node (Homebrew, nvm, Volta), see [setup](docs/setup.md) step 2.
+
 | # | Do |
 | --- | --- |
-| 1️⃣ | `/plugin install linken --marketplace Colorado-Startups/linken` |
-| 2️⃣ | Make a LinkedIn app and a token: [setup](docs/setup.md) |
-| 3️⃣ | Ask Claude to call `linken_status` |
+| 1️⃣ | `git clone https://github.com/Colorado-Startups/linken && cd linken && npm ci && sudo ./install.sh` |
+| 2️⃣ | Make a LinkedIn app on a Page you administer, add its 2 products, generate a token, then run `linken-token`: [setup](docs/setup.md) |
+| 3️⃣ | `/plugin install linken --marketplace Colorado-Startups/linken`, then ask Claude to call `linken_status` |
+
+| Learned the hard way | Do |
+| --- | --- |
+| 🪪 Several Pages share a name | Pick the Page by its URL. The app's Page cannot change after you save |
+| ⏳ The token lasts 60 days | Generate it only after step 1, and repeat step 2 to renew |
 
 ## 🛡️ Safety
 
