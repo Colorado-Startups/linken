@@ -16,7 +16,7 @@ flowchart LR
 | 5. Make a token | Developer Portal, Token Generator: pick `openid profile w_member_social`, then generate. Tokens last 60 days, with no refresh; repeat steps 5 and 6 to renew |
 | 6. Store it | `linken-token`: paste it in the hidden dialog. It goes to your Keychain as `linken-linkedin` |
 | 7. Add to your Claude host | One row of the table below |
-| 8. Check | Ask Claude to call `linken_status`. Rehearse with `LINKEN_DRY_RUN=1` before a live post |
+| 8. Check | Ask Claude to call `linken_status`. From 7 days before the token expires, it says so and names the fix. Rehearse with `LINKEN_DRY_RUN=1` before a live post |
 
 | Host | Do | Gets |
 | --- | --- | --- |

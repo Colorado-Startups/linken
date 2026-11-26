@@ -6,7 +6,7 @@
 // handler calls first and which only tests whether the server's environment holds a token, and childEnv, the minimal
 // environment of every process the server starts. Request shapes follow learn.microsoft.com/linkedin (posts-api, images-api, documents-api,
 // little-text-format and sign-in-with-linkedin-v2; view li-lms-2026-10, read 2026-11-12).
-import { spawn } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { childEnv, LinkError, type Config, type HelperResult, type Transport } from './core.ts';
 import { lastLedgerLines } from './ledger.ts';
 import { API_VERSION, TOKEN_INVALID, openSession, whoAmI, where } from './session.ts';
@@ -118,19 +118,58 @@ export function helperTransport(
   };
 }
 
+/** When the member stored the token: the Keychain item's modification date, or null. */
+export type StoredAt = () => Promise<Date | null>;
+const DAY_MS = 86_400_000;
+/** LinkedIn's Token Generator tokens last 60 days, with no refresh (docs/setup.md, step 5). */
+const TOKEN_DAYS = 60;
+/** linken_status warns this many days ahead. */
+export const WARN_DAYS = 7;
+
+/**
+ * Reads when the linken-linkedin Keychain item last changed, from `security find-generic-password` without -w or -g,
+ * so security prints the item's attributes and never its secret. Null off macOS, with no item, or on any failure.
+ */
+export function keychainStoredAt(env: Record<string, string | undefined>, security = '/usr/bin/security'): StoredAt {
+  return () => new Promise((done) => {
+    execFile(security, ['find-generic-password', '-s', 'linken-linkedin'], { env: childEnv(env) }, (error, out) => {
+      const m = /"mdat"<timedate>=\S*\s+"(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})Z/.exec(String(out));
+      done(error || !m ? null : new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6])));
+    });
+  });
+}
+
+/** When the token expires, about, and a warning that names the fix once it is WARN_DAYS or fewer away. */
+export function tokenExpiry(stored: Date, now = Date.now()): Record<string, unknown> {
+  const expires = new Date(stored.getTime() + TOKEN_DAYS * DAY_MS);
+  const days = Math.max(0, Math.floor((expires.getTime() - now) / DAY_MS));
+  const when = expires.toISOString().slice(0, 10);
+  const out: Record<string, unknown> = { token_expires: when, token_days_left: days };
+  if (days <= WARN_DAYS) {
+    out.warning = `The LinkedIn token expires in about ${days} day${days === 1 ? '' : 's'} (${when}). Generate a new one in LinkedIn's Token Generator and store it with linken-token (about 1 minute).`;
+  }
+  return out;
+}
+
 /**
  * What `linken_status` returns: who the token signs in as, whether the token works (null in a dry run, which does not
- * check), the pinned API version, whether dry-run is on, and the last 5 ledger lines. A missing or rejected token is
- * an answer, not an error. Any other failure is thrown.
+ * check), the pinned API version, whether dry-run is on, and the last 5 ledger lines. With a working token and a known
+ * store date, it adds when the token expires, and a warning WARN_DAYS ahead. A missing or rejected token is an answer,
+ * not an error. Any other failure is thrown.
  */
-export async function linkStatus(config: Config, transport: Transport): Promise<Record<string, unknown>> {
+export async function linkStatus(
+  config: Config,
+  transport: Transport,
+  storedAt: StoredAt = async () => null,
+): Promise<Record<string, unknown>> {
   const fixed = { api_version: API_VERSION, dry_run: config.dryRun, ledger: lastLedgerLines(config.home, 5) };
   const nobody = { name: null, author: null };
   try {
     const session = openSession(config, transport);
     const me = await whoAmI(session);
     if (session.planned) return { ...nobody, token_works: null, ...fixed, requests: session.planned };
-    return { ...me, token_works: true, ...fixed };
+    const stored = await storedAt();
+    return { ...me, token_works: true, ...(stored && tokenExpiry(stored)), ...fixed };
   } catch (error) {
     if (!(error instanceof LinkError) || ![TOKEN_MISSING, TOKEN_INVALID].includes(error.message)) throw error;
     return { ...nobody, token_works: false, problem: error.message, ...fixed };
