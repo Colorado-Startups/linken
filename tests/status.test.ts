@@ -19,6 +19,7 @@ test('a working token: name, author URN, version, dry-run off and an empty ledge
     api_version: API_VERSION,
     dry_run: false,
     ledger: [],
+    voice: null,
   });
   assert.deepEqual(linkedin.calls, [
     {
@@ -39,6 +40,21 @@ test('the ledger tail is the last 5 lines, oldest first', async () => {
     status.ledger,
     [3, 4, 5, 6, 7].map((n) => ({ urn: `urn:li:share:${n}` })),
   );
+});
+
+test('a voice guide in the Linken folder comes back as its text, live and dry', async () => {
+  const config = liveConfig();
+  mkdirSync(config.home, { recursive: true });
+  const guide = '# Voice\n\nShort sentences. Puns are fine. Never say "synergy".\n';
+  writeFileSync(join(config.home, 'voice.md'), guide);
+  assert.equal((await linkStatus(config, fakeLinkedIn().transport)).voice, guide);
+  assert.equal((await linkStatus({ ...config, dryRun: true }, fakeLinkedIn().transport)).voice, guide);
+});
+
+test('a voice path that is not a readable file is an error, not a silent null', async () => {
+  const config = liveConfig();
+  mkdirSync(join(config.home, 'voice.md'), { recursive: true });
+  await assert.rejects(linkStatus(config, fakeLinkedIn().transport), { code: 'EISDIR' });
 });
 
 test('401: the token does not work, and the problem names the fix', async () => {
@@ -84,6 +100,7 @@ test('a dry run calls no transport and returns the one request', async () => {
     api_version: API_VERSION,
     dry_run: true,
     ledger: [],
+    voice: null,
     requests: [
       {
         method: 'GET',

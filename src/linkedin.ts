@@ -8,7 +8,7 @@
 // little-text-format and sign-in-with-linkedin-v2; view li-lms-2026-10, read 2026-11-12).
 import { spawn } from 'node:child_process';
 import { childEnv, LinkError, type Config, type HelperResult, type Transport } from './core.ts';
-import { lastLedgerLines } from './ledger.ts';
+import { lastLedgerLines, readHomeText } from './ledger.ts';
 import { API_VERSION, TOKEN_INVALID, openSession, whoAmI, where } from './session.ts';
 
 const TOKEN_MISSING =
@@ -120,11 +120,12 @@ export function helperTransport(
 
 /**
  * What `linken_status` returns: who the token signs in as, whether the token works (null in a dry run, which does not
- * check), the pinned API version, whether dry-run is on, and the last 5 ledger lines. A missing or rejected token is
- * an answer, not an error. Any other failure is thrown.
+ * check), the pinned API version, whether dry-run is on, the last 5 ledger lines, and the member's voice guide (null
+ * without one). A missing or rejected token is an answer, not an error. Any other failure is thrown.
  */
 export async function linkStatus(config: Config, transport: Transport): Promise<Record<string, unknown>> {
-  const fixed = { api_version: API_VERSION, dry_run: config.dryRun, ledger: lastLedgerLines(config.home, 5) };
+  const voice = readHomeText(config.home, 'voice.md');
+  const fixed = { api_version: API_VERSION, dry_run: config.dryRun, ledger: lastLedgerLines(config.home, 5), voice };
   const nobody = { name: null, author: null };
   try {
     const session = openSession(config, transport);

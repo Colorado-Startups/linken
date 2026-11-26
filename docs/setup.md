@@ -48,6 +48,10 @@ If Claude cannot find `node`, put its absolute path in `command`. Sources: [conn
 | `LINKEN_DRY_RUN` | No | `1` calls no helper and writes no ledger line |
 | `LINKEN_GATES` | No | Commands that read each write as JSON on stdin and can block it |
 
+| Optional file | Meaning |
+| --- | --- |
+| `voice.md` in the data folder | Your voice guide: tone, words to use and words to avoid. `linken_status` returns it as `voice`, and the `linken-post` skill follows it when drafting. It stays on your Mac |
+
 The token goes Keychain → helper, never into the server. A `LINKEDIN_ACCESS_TOKEN` in the server's own environment makes every call error.
 
 ## ✅ First live use
