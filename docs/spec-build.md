@@ -19,7 +19,7 @@ flowchart LR
 | Runtime | Node 26 runs `src/*.ts`, no build |
 | Your gates | `LINKEN_GATES`: your own checks run before any write |
 | Word lists | `rules/rater.default.json`, your `~/.linken/rater.json` |
-| Skills | `skills/linken-post`, `skills/linken-inbox`, `skills/linken-cleanup`. The plugin ships them as plugin skills. Any other MCP client gets them from the server over the MCP Skills extension |
+| Skills | `skills/linken-post`, `skills/linken-inbox`, `skills/linken-replies`, `skills/linken-cleanup`. The plugin ships them as plugin skills. Any other MCP client gets them from the server over the MCP Skills extension |
 | Tests | `tests/`, run in CI |
 | Scores | [Quality page](https://colorado-startups.github.io/linken/) |
 

@@ -8,7 +8,7 @@ import { createMcpHandler } from '@modelcontextprotocol/server';
 import { fakeLinkedIn, liveConfig } from './fake-linkedin.ts';
 import { buildServer, serverSkills, SKILLS_DIR } from '../src/server.ts';
 
-const NAMES = ['linken-cleanup', 'linken-inbox', 'linken-post'];
+const NAMES = ['linken-cleanup', 'linken-inbox', 'linken-post', 'linken-replies'];
 
 async function rpc(env: Record<string, string | undefined>, method: string, params: Record<string, unknown> = {}) {
   const skills = await serverSkills(env);
@@ -43,7 +43,7 @@ test('resources/read returns a SKILL.md exactly as it is in the repo', async () 
 
 test('an unknown skill is invalid params, and the tools are still there', async () => {
   assert.equal((await rpc({}, 'skills/get', { uri: 'skill://nope/SKILL.md' })).error.code, -32602);
-  assert.equal((await rpc({}, 'tools/list')).result.tools.length, 13);
+  assert.equal((await rpc({}, 'tools/list')).result.tools.length, 17);
 });
 
 test('LINKEN_MCP_SKILLS=0 serves no skills, and a missing or unreadable folder serves none', async () => {

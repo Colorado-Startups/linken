@@ -4,9 +4,9 @@
 
 Your LinkedIn, run by Claude. Nothing posts until you click.
 
-| ✍️ Post | 📥 Inbox | 🧹 Clean up |
-| --- | --- | --- |
-| Posts, comments and replies you approve | Drafts replies from your own data export | Keeps who matters, removes clear spam, paced |
+| ✍️ Post | 💬 Replies | 📥 Inbox | 🧹 Clean up |
+| --- | --- | --- | --- |
+| Posts, comments and replies you approve | A board of comments waiting on you, answered after your click | Drafts replies from your own data export | Keeps who matters, removes clear spam, paced |
 
 ```mermaid
 flowchart LR
