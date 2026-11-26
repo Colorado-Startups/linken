@@ -2,6 +2,13 @@
 
 Step 7 of [Set up Linken](setup.md). Pick one row.
 
+```mermaid
+flowchart LR
+  C[🤖 Claude host] -->|starts| S[Linken server]
+  S -->|LINKEN_HELPER_CMD| H[🔐 helper with the Keychain token]
+  H --> L[🔗 LinkedIn API]
+```
+
 | Host | Do | Gets |
 | --- | --- | --- |
 | Claude desktop, Chat and Code tab | Settings, Developer, Edit Config: add the block below, then restart Claude | Tools |
