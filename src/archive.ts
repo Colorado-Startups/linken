@@ -82,11 +82,8 @@ function groupThreads(messages: Message[]): Map<string, Message[]> {
 
 /** The signals of `url`, added when there are none yet. */
 function signalsOf(signals: Map<string, Signals>, url: string): Signals {
-  const known = signals.get(url);
-  if (known) return known;
-  const fresh = { sent: 0, received: 0, started: false, pitchFirst: false };
-  signals.set(url, fresh);
-  return fresh;
+  if (!signals.has(url)) signals.set(url, { sent: 0, received: 0, started: false, pitchFirst: false });
+  return signals.get(url)!;
 }
 
 /** Counts one message into `signals`; `first` is true for the first message of its thread. */
@@ -108,12 +105,7 @@ function countMessage(signals: Map<string, Signals>, m: Message, first: boolean,
 function messageSignals(threads: Map<string, Message[]>, owner: string, rules: Rules) {
   const signals = new Map<string, Signals>();
   const dates: string[] = [];
-  for (const thread of threads.values()) {
-    thread.forEach((m, i) => {
-      dates.push(isoDate(m.date));
-      countMessage(signals, m, i === 0, owner, rules);
-    });
-  }
+  for (const thread of threads.values()) thread.forEach((m, i) => (dates.push(isoDate(m.date)), countMessage(signals, m, i === 0, owner, rules)));
   return { signals, dates };
 }
 
