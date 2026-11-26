@@ -44,11 +44,11 @@ flowchart LR
 | # | Rule | Enforced by |
 | --- | --- | --- |
 | 1 | 👤 Every post and comment waits for your click in the approval dialog | `trusted/linken-linkedin` dialog |
-| 2 | 🛑 The halt file `~/.linken/halt` stops every action | `src/core.ts` |
+| 2 | 🛑 The halt file `~/.linken/halt` stops every LinkedIn write and the next removal | `src/connections.ts` |
 | 3 | ⏱️ Daily and sitting caps, with random 15 to 45 second gaps. A cap can go down, never up | `src/connections.ts`, [clean-up guide](docs/connections.md) |
 | 4 | 🔎 The live profile page decides a removal. The export only suggests | `src/levels.ts` |
 | 5 | 🏠 The token stays in the Keychain. Data stays in `~/.linken`. Nothing leaves your machine but the API call you approved | `trusted/`, `install.sh` |
-| 6 | 🧪 A dev session never calls LinkedIn live: it uses `LINKEN_DRY_RUN=1` | `src/core.ts` |
+| 6 | 🧪 `LINKEN_DRY_RUN=1` rehearses every write with no LinkedIn call. Dev sessions always use it | `src/session.ts`, `src/linkedin.ts` |
 | 7 | 🙈 No member data in this repo: fixtures are fictional | `tests/privacy.test.ts` |
 
 ### 👥 Grow, planned (#103)
