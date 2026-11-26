@@ -6,7 +6,7 @@ name: pages
 # .github/workflows/actions.lock (gh actions-lock; Git Crafter templates/ci/DECISIONS.md, 2026-11-10). actions/pages
 # is named by tag like the rest; .github/ci-standard.json excepts it from the pinned rule, which cannot read subpaths.
 # Dependabot's github-actions entry bumps every pin. A pull request builds the pages and runs the docs.unmapped gate, so its trigger lists the
-# doc globs (every Link doc is a .md file); only a push to main publishes.
+# doc globs (every Linken doc is a .md file); only a push to main publishes.
 on:
   push:
     branches: [main]

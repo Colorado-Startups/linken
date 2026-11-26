@@ -1,6 +1,6 @@
 # Code of conduct
 
-Link adopts the [Contributor Covenant 3.0](https://www.contributor-covenant.org/version/3/0/code_of_conduct/), its newest version (contributor-covenant.org, read 2026-11-10). Its text is the standard here.
+Linken adopts the [Contributor Covenant 3.0](https://www.contributor-covenant.org/version/3/0/code_of_conduct/), its newest version (contributor-covenant.org, read 2026-11-10). Its text is the standard here.
 
 ```mermaid
 flowchart LR
