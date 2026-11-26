@@ -19,7 +19,7 @@ import { connectionsCheck, connectionsCheckList, connectionsList, connectionsMar
 import { runGates } from './gates.ts';
 import { configFrom, LinkError, type Config, type Transport } from './core.ts';
 import { commentCreate } from './comments.ts';
-import { helperTransport, linkStatus, refuseToken } from './linkedin.ts';
+import { helperTransport, keychainStoredAt, linkStatus, refuseToken, type StoredAt } from './linkedin.ts';
 import { publishPost } from './publish.ts';
 
 const Tier = z.enum(['PROTECTED', 'KEEP', 'REVIEW', 'REMOVE']);
@@ -61,7 +61,7 @@ const url = z.string().min(1).describe('The connection\'s LinkedIn profile URL, 
 const thread = z.string().min(1).describe('The thread id, as inbox_next returns it (the export\'s CONVERSATION ID).');
 
 /** What every register function needs: the server to add tools to, and what the tool handlers read. */
-type Deps = { server: McpServer; config: Config; transport: Transport; env: Env; desk: Desk };
+type Deps = { server: McpServer; config: Config; transport: Transport; env: Env; desk: Desk; storedAt?: StoredAt };
 
 const writes = { readOnlyHint: false, destructiveHint: false, openWorldHint: true };
 type Meta<S> = { title: string; description: string; inputSchema: S; annotations: Record<string, boolean> };
@@ -74,13 +74,13 @@ function tool<S extends z.ZodType>({ server, env }: Deps, name: string, meta: Me
 
 /** Registers linken_status and post_publish. */
 function registerPostTools(deps: Deps): void {
-  const { config, transport, env } = deps;
+  const { config, transport, env, storedAt } = deps;
   tool(deps, 'linken_status', {
     title: 'Linken status',
-    description: "Checks the LinkedIn connection with one read call (GET /v2/userinfo), sent through the trusted helper. Returns the member's name, the author URN (urn:li:person:{sub}), whether the token works, the pinned LinkedIn API version, whether dry-run is on, the last 5 ledger lines, and the member's voice guide (LINKEN_HOME/voice.md as text, null when there is none), to follow when drafting. With LINKEN_DRY_RUN=1 it sends nothing and returns the request it would send. It publishes nothing and returns no token.",
+    description: "Checks the LinkedIn connection with one read call (GET /v2/userinfo), sent through the trusted helper. Returns the member's name, the author URN (urn:li:person:{sub}), whether the token works, the pinned LinkedIn API version, whether dry-run is on, the last 5 ledger lines, and the member's voice guide (LINKEN_HOME/voice.md as text, null when there is none), to follow when drafting. When it can read the Keychain item's date, it adds when the token expires (60 days after it was stored) and a warning 7 days ahead that names the fix. With LINKEN_DRY_RUN=1 it sends nothing and returns the request it would send. It publishes nothing and returns no token.",
     inputSchema: z.strictObject({}),
     annotations: { readOnlyHint: true },
-  }, () => linkStatus(config, transport));
+  }, () => linkStatus(config, transport, storedAt));
 
   tool(deps, 'post_publish', {
     title: 'Publish a LinkedIn post',
@@ -221,14 +221,16 @@ function registerInboxTools(deps: Deps): void {
 
 /**
  * A server with every Linken tool registered. `env` is the server's own environment, default `process.env`. `transport`
- * carries every LinkedIn request, by default the helper command in `config.helper`; tests pass a fake.
+ * carries every LinkedIn request, by default the helper command in `config.helper`; tests pass a fake. `storedAt` dates
+ * the token, by default from the Keychain, and only with the default transport, whose helper reads that Keychain item.
  */
-export function buildServer(config: Config, options: { transport?: Transport; env?: Env; desk?: Desk } = {}): McpServer {
+export function buildServer(config: Config, options: { transport?: Transport; env?: Env; desk?: Desk; storedAt?: StoredAt } = {}): McpServer {
   const env = options.env ?? process.env;
   const transport = options.transport ?? helperTransport(config.helper, env);
   const desk = options.desk ?? macDesk(env);
+  const storedAt = options.storedAt ?? (options.transport ? undefined : keychainStoredAt(env));
   const server = new McpServer({ name: 'linken', title: 'Linken', version: VERSION });
-  const deps: Deps = { server, config, transport, env, desk };
+  const deps: Deps = { server, config, transport, env, desk, storedAt };
   for (const register of [registerPostTools, registerCommentTool, registerArchiveTools, registerConnectionTools, registerConnectionReports, registerInboxTools]) register(deps);
   return server;
 }
