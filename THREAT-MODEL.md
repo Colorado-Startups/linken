@@ -24,6 +24,7 @@ flowchart LR
 | The token on a command line (`ps`) | Launcher: fd 3 here-document; `linken-token`: `security -i` stdin | `tests/launcher.test.ts`, `tests/token.test.ts` |
 | The token sent to another host | Host pinning; no redirects; 3 headers at most | `tests/helper.test.ts` |
 | A message in the inbox steers Claude | Message text is returned as quoted data; Linken sends no message | `skills/linken-inbox` |
+| A comment on the replies board steers Claude | Comment text and names are returned as quoted data; a reply goes out only through `comment_create` and its dialog | `skills/linken-replies` |
 | A fork's PR changes trusted code | `tools/merge_policy.json`: maintainer only | `CODEOWNERS` |
 | Member data committed to the public repo | A test fails on any non-`example-` profile link or export file in a tracked file | `tests/privacy.test.ts` |
 
