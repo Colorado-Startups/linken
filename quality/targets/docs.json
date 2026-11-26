@@ -46,6 +46,14 @@
           ]
         },
         {
+          "doc": "docs/setup-hosts.md",
+          "area": [
+            "src/server.ts",
+            "src/session.ts",
+            ".claude-plugin/plugin.json"
+          ]
+        },
+        {
           "doc": ".claude/skills/bump-pins/SKILL.md",
           "area": [
             ".github/workflows/ci.yml",
@@ -59,6 +67,22 @@
             "src/levels.ts",
             "rules/rater.default.json",
             "rules/starter.startups.json"
+          ]
+        },
+        {
+          "doc": "docs/spec-jobs.md",
+          "area": [
+            "src/server.ts",
+            "src/publish.ts",
+            "src/inbox.ts",
+            "src/connections.ts"
+          ]
+        },
+        {
+          "doc": "docs/spec-build.md",
+          "area": [
+            "src/server.ts",
+            "rules/rater.default.json"
           ]
         },
         {

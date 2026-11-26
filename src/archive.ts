@@ -154,6 +154,22 @@ function priorConnections(config: Config): Map<string, Connection> {
   return prior;
 }
 
+/** The job fields for a row: a field the export does not carry keeps what an earlier load saved; a blank nobody ever saw is not "empty". */
+function jobOf(cell: (key: string) => string, was: Connection | undefined, x: Context) {
+  const priorKnown = was !== undefined && !was.jobUnknown && x.priorHasJobs;
+  const job = (key: 'company' | 'position') => (x.has[key] ? cell(key) : priorKnown ? was[key] : '');
+  return { company: job('company'), position: job('position'), jobKnown: (x.has.company && x.has.position) || priorKnown };
+}
+
+/** Whether the owner endorsed, invited or chose to keep this person, by profile link, full name or email. */
+function tiesOf(url: string, full: string, email: string, x: Context) {
+  return {
+    endorsed: x.endorsed.has(url) || x.endorsed.has(full),
+    invited: x.invited.has(url) || x.invited.has(full),
+    keep: x.keep.urls.has(url) || (email !== '' && x.keep.emails.has(email)) || x.keep.names.has(full),
+  };
+}
+
 /** One export row as a stored connection: its signals, its earlier mark and state, and its rating. */
 function connectionOf(p: Record<string, string>, x: Context): Connection {
   const cell = (key: string) => p[key] ?? '';
@@ -161,17 +177,11 @@ function connectionOf(p: Record<string, string>, x: Context): Connection {
   const s = x.signals.get(url) ?? { sent: 0, received: 0, started: false, pitchFirst: false };
   const was = x.prior.get(url);
   const [first, last, email] = [cell('first name'), cell('last name'), cell('email address').toLowerCase()];
-  // A job field the export does not carry keeps what an earlier load saved; a blank nobody ever saw is not "empty".
-  const priorKnown = was !== undefined && !was.jobUnknown && x.priorHasJobs;
-  const job = (key: 'company' | 'position') => (x.has[key] ? cell(key) : priorKnown ? was[key] : '');
-  const jobKnown = (x.has.company && x.has.position) || priorKnown;
-  const full = `${first} ${last}`.trim().toLowerCase();
+  const { company, position, jobKnown } = jobOf(cell, was, x);
   const row: Row = {
-    first, last, url, email, company: job('company'), position: job('position'), connected: isoDate(cell('connected on')),
+    first, last, url, email, company, position, connected: isoDate(cell('connected on')),
     sent: s.sent, received: s.received, started: s.started, pitchFirst: s.pitchFirst,
-    endorsed: x.endorsed.has(url) || x.endorsed.has(full),
-    invited: x.invited.has(url) || x.invited.has(full),
-    keep: x.keep.urls.has(url) || (email !== '' && x.keep.emails.has(email)) || x.keep.names.has(full),
+    ...tiesOf(url, `${first} ${last}`.trim().toLowerCase(), email, x),
     mark: was?.mark,
     ...(jobKnown ? {} : { jobUnknown: true }),
   };
