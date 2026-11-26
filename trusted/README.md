@@ -25,7 +25,7 @@ flowchart LR
 | [linken-linkedin.mjs](linken-linkedin.mjs) | `/usr/local/lib/linken/linken-linkedin.mjs` | root 644 |
 | [linken-token](linken-token) (hidden dialog → Keychain) | `/usr/local/bin/linken-token` | root 755 |
 
-`install.sh` refuses a Node the member can write. The launcher refuses a token outside `A-Za-z0-9._:+/=-` (exit 4); its other checks are under Guarantees.
+`install.sh` refuses a Node the member can write, and it tests that before it runs that Node. It takes a root-owned Node as its argument: `sudo ./install.sh /usr/local/bin/node`. The launcher refuses a token outside `A-Za-z0-9._:+/=-` (exit 4); its other checks are under Guarantees.
 
 ## Contract
 
@@ -45,7 +45,7 @@ flowchart LR
 
 ## Guarantees
 
-Tests: [helper.test.ts](../tests/helper.test.ts) (H), [launcher.test.ts](../tests/launcher.test.ts) (L), [token.test.ts](../tests/token.test.ts) (T).
+Tests: [helper.test.ts](../tests/helper.test.ts) (H), [launcher.test.ts](../tests/launcher.test.ts) (L), [token.test.ts](../tests/token.test.ts) (T), [install.test.ts](../tests/install.test.ts) (I).
 
 | Guarantee | Test |
 | --- | --- |
@@ -57,6 +57,7 @@ Tests: [helper.test.ts](../tests/helper.test.ts) (H), [launcher.test.ts](../test
 | Token never on stdout, stderr or a command line | H "the token never appears in the output", "run as a program"; L "the token variable is in no command's arguments"; T "a good token goes to security on stdin" |
 | Node gets `HOME` and the token only (macOS adds `__CF_USER_TEXT_ENCODING` itself); the spec arrives unchanged | L "the launcher hands Node the token through a pipe" |
 | The launcher is the reviewed five lines, and executable | L "the launcher is the reviewed five lines" |
+| The installer refuses a Node the member can write before it runs it, by its real path; a named Node gets the same checks | I "a Node the member can write is refused, and it is never run", "the real path decides", "a named Node gets the same checks" |
 | A bad token starts nothing or stores nothing | L "an empty token…"; T "a cancel, an empty answer or a bad character" |
 
 ## Limits
