@@ -13,6 +13,8 @@
   "scanning",
   "insights",
   "settings",
+  ["post", "Post"],
+  ["inbox", "Inbox"],
   ["cleanup", "Clean-up"],
   ["credits", "Credits"],
   ["claude", "Claude"],
