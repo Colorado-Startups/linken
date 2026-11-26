@@ -52,7 +52,7 @@ export interface Row {
   keep: boolean;
   /** The owner's override from connections_mark. */
   mark?: 'keep' | 'remove';
-  /** The export had no Company and Position columns and no earlier load knew them, so a blank says nothing. */
+  /** The export carried no company or no position, and no earlier load saved them, so a blank says nothing. */
   jobUnknown?: boolean;
 }
 

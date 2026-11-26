@@ -32,11 +32,11 @@ LinkedIn's Download my data page says the export has no current companies or job
 
 | Export | Rules 7 to 9 |
 |---|---|
-| Has Company and Position | As above |
-| Has neither, and an earlier load knew the person | Use the title and company that load saved |
-| Has neither, and the person is new to Linken | Skipped. Nobody is `empty` for a missing column. `archive_load` returns a `note` |
+| Carries a company and a position for someone | As above |
+| Carries none, and an earlier load saved the person's title | Use what that load saved |
+| Carries none, and no load ever saved a title | Skipped. Nobody is `empty` for data the export does not carry. `archive_load` returns a `note` |
 
-Keep the last export that has titles, and load it first.
+A header over blank cells counts as carrying none. Keep the last export that has titles. Loading it is the only way to bring titles back.
 
 ## 2 · Check and remove: the profile lane
 

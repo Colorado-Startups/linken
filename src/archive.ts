@@ -45,13 +45,15 @@ interface Context {
   invited: Set<string>;
   prior: Map<string, Connection>;
   now: Date;
-  /** Connections.csv has a Company or a Position column. */
-  jobColumns: boolean;
+  /** Which job fields the export carries: true when at least one row has a value. A header over blank cells carries nothing. */
+  has: { company: boolean; position: boolean };
+  /** The earlier load saved a company or a position for someone, so a blank it saved was a real blank. */
+  priorHasJobs: boolean;
 }
 
-/** What archive_load says when the export has neither job column. */
-const NO_JOB_COLUMNS =
-  'This export has no Company or Position column. Titles from an earlier load were kept where it knew them. Nobody is rated empty for a missing column, and rules 7 to 9 only match people an earlier load knew. The live profile page decides.';
+/** What archive_load says when the export carries no company or no position for anyone. */
+const NO_JOB_DATA =
+  'This export carries no company or no position for anyone. Linken kept what an earlier load saved, and rates nobody empty for data the export does not carry. The live profile page decides.';
 
 /** The person a message is from: its sender's profile URL, or the name in `from`. */
 const keyOf = (m: Message) => normUrl(m['sender profile url'] ?? '') || (m.from ?? '').toLowerCase();
@@ -159,9 +161,10 @@ function connectionOf(p: Record<string, string>, x: Context): Connection {
   const s = x.signals.get(url) ?? { sent: 0, received: 0, started: false, pitchFirst: false };
   const was = x.prior.get(url);
   const [first, last, email] = [cell('first name'), cell('last name'), cell('email address').toLowerCase()];
-  // An export without the job columns keeps the company and position an earlier load knew; a blank it never saw is not "empty".
-  const job = (key: 'company' | 'position') => (x.jobColumns ? cell(key) : (was?.[key] ?? ''));
-  const jobKnown = x.jobColumns || (was !== undefined && !was.jobUnknown);
+  // A job field the export does not carry keeps what an earlier load saved; a blank nobody ever saw is not "empty".
+  const priorKnown = was !== undefined && !was.jobUnknown && x.priorHasJobs;
+  const job = (key: 'company' | 'position') => (x.has[key] ? cell(key) : priorKnown ? was[key] : '');
+  const jobKnown = (x.has.company && x.has.position) || priorKnown;
   const full = `${first} ${last}`.trim().toLowerCase();
   const row: Row = {
     first, last, url, email, company: job('company'), position: job('position'), connected: isoDate(cell('connected on')),
@@ -190,7 +193,8 @@ export async function archiveLoad(input: { path: string }, config: Config, env: 
   if (!files.has('connections.csv')) throw new LinkError('The export has no Connections.csv. Request the full archive at linkedin.com/mypreferences/d/download-my-data.');
   const people = table('connections.csv', 'first name');
   // LinkedIn's Download my data page says the export has no current companies or job titles as of December 2026 (read 2026-11-26).
-  const jobColumns = people.length === 0 || people.some((p) => 'company' in p || 'position' in p);
+  const carries = (key: string) => people.some((p) => (p[key] ?? '') !== '');
+  const has = { company: carries('company'), position: carries('position') };
 
   // Messages: who the owner is (the most frequent sender, or LINKEN_OWNER_URL), then per person what was sent and received.
   const messages = table('messages.csv', 'conversation id');
@@ -205,10 +209,12 @@ export async function archiveLoad(input: { path: string }, config: Config, env: 
       .filter((r) => (r.direction ?? '').toUpperCase() === 'OUTGOING')
       .flatMap((r) => [normUrl(r.inviteeprofileurl ?? ''), (r.to ?? '').trim().toLowerCase()].filter(Boolean)),
   );
-  const context = { rules, keep, signals, endorsed: endorsedIn(files), invited, prior: priorConnections(config), now: new Date(), jobColumns };
+  const prior = priorConnections(config);
+  const priorHasJobs = [...prior.values()].some((c) => `${c.company}${c.position}`.trim() !== '');
+  const context = { rules, keep, signals, endorsed: endorsedIn(files), invited, prior, now: new Date(), has, priorHasJobs };
   const out = people.map((p) => connectionOf(p, context));
   writeJson(connectionsFile(config), out);
   dates.push(...out.map((c) => c.connected));
   const seen = dates.filter(Boolean).sort();
-  return { connections: out.length, by_tier: countBy(out, 'tier'), by_reason: countBy(out, 'reason'), from: seen[0] ?? null, to: seen.at(-1) ?? null, owner_found: owner !== '', inbox_waiting: inbox.length, ...(jobColumns ? {} : { note: NO_JOB_COLUMNS }) };
+  return { connections: out.length, by_tier: countBy(out, 'tier'), by_reason: countBy(out, 'reason'), from: seen[0] ?? null, to: seen.at(-1) ?? null, owner_found: owner !== '', inbox_waiting: inbox.length, ...(people.length === 0 || (has.company && has.position) ? {} : { note: NO_JOB_DATA }) };
 }
