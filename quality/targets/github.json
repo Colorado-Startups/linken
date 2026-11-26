@@ -18,5 +18,20 @@
       ],
       "threat_model_grace_days": 7
     }
+  },
+  {
+    "id": "issues.open_bugs",
+    "params": {
+      "project_title": "Linken",
+      "area_labels": [
+        "area: post",
+        "area: inbox",
+        "area: cleanup",
+        "area: grow",
+        "area: install",
+        "area: docs",
+        "area: quality"
+      ]
+    }
   }
 ]

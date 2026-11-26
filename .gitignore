@@ -7,3 +7,5 @@ node_modules
 quality/data/
 quality/history/
 quality/dist/
+# Pack checkouts a --local Quality collect reads.
+.code-os-packs/
