@@ -29,7 +29,7 @@ test('every place in src/ that starts a process passes childEnv(env) as its envi
         if (starts.test(line)) sites.push(`${file}:${index + 1}: ${line.trim()}`);
       });
   }
-  assert.deepEqual(sites.map((site) => site.split(':')[0]), ['archive.ts', 'desk.ts', 'gates.ts', 'linkedin.ts'], sites.join('\n'));
+  assert.deepEqual(sites.map((site) => site.split(':')[0]), ['archive.ts', 'desk.ts', 'gates.ts', 'linkedin.ts', 'linkedin.ts'], sites.join('\n'));
   for (const site of sites) assert.match(site, /env: (\{ \.\.\.)?childEnv\(env\)/, site);
 });
 
