@@ -26,7 +26,7 @@ flowchart LR
 
 ## Install
 
-macOS, Node 26 or newer. Install first: step 2 needs the `linken-token` that step 1 installs.
+macOS, Node 26 or newer. Install first: step 2 needs the `linken-token` that step 1 installs. If `install.sh` refuses your Node (Homebrew, nvm, Volta), see [setup](docs/setup.md) step 2.
 
 | # | Do |
 | --- | --- |
