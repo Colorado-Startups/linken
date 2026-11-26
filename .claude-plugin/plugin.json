@@ -11,9 +11,10 @@
   "mcpServers": {
     "linken": {
       "command": "node",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/src/server.ts"],
+      "args": ["--import", "${CLAUDE_PLUGIN_ROOT}/plugin/deps.mjs", "${CLAUDE_PLUGIN_ROOT}/src/server.ts"],
       "env": {
-        "LINKEN_HELPER_CMD": "[\"/bin/sh\",\"-c\",\"LINKEDIN_ACCESS_TOKEN=\\\"$(/usr/bin/security find-generic-password -s linken-linkedin -w)\\\" exec /usr/local/bin/linken-linkedin\"]"
+        "LINKEN_HELPER_CMD": "[\"/bin/sh\",\"-c\",\"LINKEDIN_ACCESS_TOKEN=\\\"$(/usr/bin/security find-generic-password -s linken-linkedin -w)\\\" exec /usr/local/bin/linken-linkedin\"]",
+        "LINKEN_DEPS": "${CLAUDE_PLUGIN_DATA}"
       }
     }
   }

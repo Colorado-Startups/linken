@@ -21,7 +21,7 @@ flowchart LR
 | Host | Do | Gets |
 | --- | --- | --- |
 | Claude desktop, Chat and Code tab | Settings, Developer, Edit Config: add the block below, then restart Claude | Tools |
-| Claude Code or Cowork plugin | `/plugin install linken --marketplace Colorado-Startups/linken` (Claude Code 2.1.275 or later) | Tools and the 3 skills |
+| Claude Code or Cowork plugin | `/plugin install linken --marketplace Colorado-Startups/linken` (Claude Code 2.1.275 or later). Its first session installs the two npm dependencies into the plugin's data folder, with install scripts off; if the tools are missing, start one more session | Tools and the 3 skills |
 | A project's `.mcp.json` | The block below, in that file | Tools |
 | Skills in Chat | Zip a folder from `skills/`, then Customize, Skills, Upload a skill | Skills |
 
