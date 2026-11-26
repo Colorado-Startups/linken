@@ -43,16 +43,19 @@ export function recordLedger(home: string, entry: Omit<LedgerEntry, 'chars' | 's
   }
 }
 
-/** The last `count` lines, oldest first, each parsed; a line that is not JSON comes back as its text. No file: none. */
-export function lastLedgerLines(home: string, count: number): unknown[] {
-  let text: string;
+/** The text of `name` in the Linken folder, or null when there is no such file. Any other read failure is thrown. */
+export function readHomeText(home: string, name: string): string | null {
   try {
-    text = readFileSync(join(home, FILE), 'utf8');
+    return readFileSync(join(home, name), 'utf8');
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
     throw error;
   }
-  return text
+}
+
+/** The last `count` lines, oldest first, each parsed; a line that is not JSON comes back as its text. No file: none. */
+export function lastLedgerLines(home: string, count: number): unknown[] {
+  return (readHomeText(home, FILE) ?? '')
     .split('\n')
     .filter((line) => line !== '')
     .slice(-count)

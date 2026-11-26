@@ -77,7 +77,7 @@ function registerPostTools(deps: Deps): void {
   const { config, transport, env, storedAt } = deps;
   tool(deps, 'linken_status', {
     title: 'Linken status',
-    description: "Checks the LinkedIn connection with one read call (GET /v2/userinfo), sent through the trusted helper. Returns the member's name, the author URN (urn:li:person:{sub}), whether the token works, the pinned LinkedIn API version, whether dry-run is on, and the last 5 ledger lines. When it can read the Keychain item's date, it adds when the token expires (60 days after it was stored) and a warning 7 days ahead that names the fix. With LINKEN_DRY_RUN=1 it sends nothing and returns the request it would send. It publishes nothing and returns no token.",
+    description: "Checks the LinkedIn connection with one read call (GET /v2/userinfo), sent through the trusted helper. Returns the member's name, the author URN (urn:li:person:{sub}), whether the token works, the pinned LinkedIn API version, whether dry-run is on, the last 5 ledger lines, and the member's voice guide (LINKEN_HOME/voice.md as text, null when there is none), to follow when drafting. When it can read the Keychain item's date, it adds when the token expires (60 days after it was stored) and a warning 7 days ahead that names the fix. With LINKEN_DRY_RUN=1 it sends nothing and returns the request it would send. It publishes nothing and returns no token.",
     inputSchema: z.strictObject({}),
     annotations: { readOnlyHint: true },
   }, () => linkStatus(config, transport, storedAt));
