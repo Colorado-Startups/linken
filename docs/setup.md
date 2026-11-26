@@ -47,6 +47,7 @@ If Claude cannot find `node`, put its absolute path in `command`. Sources: [conn
 | `LINKEN_HOME` | No | Data folder. Default `~/.linken` |
 | `LINKEN_DRY_RUN` | No | `1` calls no helper and writes no ledger line |
 | `LINKEN_GATES` | No | Commands that read each write as JSON on stdin and can block it |
+| `LINKEN_MCP_SKILLS` | No | `0` stops serving the three skills over MCP. The plugin sets it, since it ships them as plugin skills |
 
 | Optional file | Meaning |
 | --- | --- |

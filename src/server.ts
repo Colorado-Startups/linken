@@ -7,10 +7,13 @@
 // environment it returns a tool error, live or in a dry run, before any gate or helper command starts. And every
 // process the server starts, the helper command and each gate, gets childEnv: HOME, USER, LOGNAME, PATH and TMPDIR
 // only. Every failure comes back as a tool error that names the fix, never as an exception through the MCP transport.
-import { realpathSync } from 'node:fs';
+import { existsSync, realpathSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/server';
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { serveStdio } from '@modelcontextprotocol/server/stdio';
+import type { SkillCatalog } from '@modelcontextprotocol/server/ext/skills';
+import { loadSkills } from '@modelcontextprotocol/server/ext/skills/node';
 import { z } from 'zod';
 import { archiveLoad } from './archive.ts';
 import { macDesk, type Desk } from './desk.ts';
@@ -226,7 +229,7 @@ function registerInboxTools(deps: Deps): void {
  * carries every LinkedIn request, by default the helper command in `config.helper`; tests pass a fake. `storedAt` dates
  * the token, by default from the Keychain, and only with the default transport, whose helper reads that Keychain item.
  */
-export function buildServer(config: Config, options: { transport?: Transport; env?: Env; desk?: Desk; storedAt?: StoredAt } = {}): McpServer {
+export function buildServer(config: Config, options: { transport?: Transport; env?: Env; desk?: Desk; storedAt?: StoredAt; skills?: SkillCatalog } = {}): McpServer {
   const env = options.env ?? process.env;
   const transport = options.transport ?? helperTransport(config.helper, env);
   const desk = options.desk ?? macDesk(env);
@@ -234,11 +237,26 @@ export function buildServer(config: Config, options: { transport?: Transport; en
   const server = new McpServer({ name: 'linken', title: 'Linken', version: VERSION }, { instructions: INSTRUCTIONS });
   const deps: Deps = { server, config, transport, env, desk, storedAt };
   for (const register of [registerPostTools, registerCommentTool, registerArchiveTools, registerConnectionTools, registerConnectionReports, registerInboxTools]) register(deps);
+  options.skills?.attach(server);
   return server;
+}
+
+/** The skills folder next to src/, as the repo, the plugin and a Linken Pro install lay it out. */
+export const SKILLS_DIR = fileURLToPath(new URL('../skills', import.meta.url));
+
+/**
+ * The skills to serve over MCP (the Skills extension, SEP-2640), so a client that runs Linken as a plain MCP server
+ * gets linken-post, linken-inbox and linken-cleanup too. None with LINKEN_MCP_SKILLS=0, which the plugin sets because
+ * it already ships the same skills as plugin skills, or when the folder is missing.
+ */
+export async function serverSkills(env: Env, dir = SKILLS_DIR): Promise<SkillCatalog | undefined> {
+  if (env.LINKEN_MCP_SKILLS === '0' || !existsSync(dir)) return undefined;
+  return loadSkills(dir, { cacheHint: { ttlMs: 300_000, cacheScope: 'public' } });
 }
 
 // Started as a program, not imported by a test: serve over stdio until the client closes stdin.
 if (process.argv[1] && realpathSync(process.argv[1]) === import.meta.filename) {
   const config = configFrom(process.env);
-  serveStdio(() => buildServer(config));
+  const skills = await serverSkills(process.env);
+  serveStdio(() => buildServer(config, { skills }));
 }
