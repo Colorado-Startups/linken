@@ -2,6 +2,8 @@
 
 🎯 Your LinkedIn, run by Claude. Nothing posts until you click.
 
+This page says what Linken is, what it does, and what it will not do.
+
 | Part | Where |
 | --- | --- |
 | 1 · Who it is for, 2 · The jobs | [Spec: jobs](docs/spec-jobs.md) |
