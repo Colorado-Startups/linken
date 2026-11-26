@@ -46,9 +46,11 @@ test('an unknown skill is invalid params, and the tools are still there', async 
   assert.equal((await rpc({}, 'tools/list')).result.tools.length, 13);
 });
 
-test('LINKEN_MCP_SKILLS=0 serves no skills, and a missing folder serves none', async () => {
+test('LINKEN_MCP_SKILLS=0 serves no skills, and a missing or unreadable folder serves none', async () => {
   assert.equal(await serverSkills({ LINKEN_MCP_SKILLS: '0' }), undefined);
   assert.equal(await serverSkills({}, `${SKILLS_DIR}/does-not-exist`), undefined);
+  // A path that exists but is no folder: the load fails, and the server serves its tools without skills.
+  assert.equal(await serverSkills({}, `${SKILLS_DIR}/linken-post/SKILL.md`), undefined);
   assert.ok((await rpc({ LINKEN_MCP_SKILLS: '0' }, 'skills/list')).error, 'skills/list is not served');
 });
 

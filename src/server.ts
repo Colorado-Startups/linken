@@ -251,7 +251,13 @@ export const SKILLS_DIR = fileURLToPath(new URL('../skills', import.meta.url));
  */
 export async function serverSkills(env: Env, dir = SKILLS_DIR): Promise<SkillCatalog | undefined> {
   if (env.LINKEN_MCP_SKILLS === '0' || !existsSync(dir)) return undefined;
-  return loadSkills(dir, { cacheHint: { ttlMs: 300_000, cacheScope: 'public' } });
+  try {
+    return await loadSkills(dir, { cacheHint: { ttlMs: 300_000, cacheScope: 'public' } });
+  } catch (error) {
+    // The tools still serve. As in run, only the error's name is logged.
+    console.error('link_skills_not_served', error instanceof Error ? error.name : 'unknown');
+    return undefined;
+  }
 }
 
 // Started as a program, not imported by a test: serve over stdio until the client closes stdin.
