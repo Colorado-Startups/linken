@@ -19,6 +19,13 @@
           ]
         },
         {
+          "doc": "skills/linken-replies/SKILL.md",
+          "area": [
+            "src/replies.ts",
+            "src/comments.ts"
+          ]
+        },
+        {
           "doc": "skills/linken-cleanup/SKILL.md",
           "area": [
             "src/connections.ts",

@@ -82,6 +82,20 @@ test('replies_sync on a 403 remembers the refusal and stops calling', async () =
   assert.equal(calls.length, count);
 });
 
+test('replies_sync after one good read skips a post that 403s, and keeps what it found', async () => {
+  const config = liveConfig();
+  const other = 'urn:li:activity:7100000000000000099';
+  const { transport } = fakeLinkedIn({
+    'GET /v2/socialActions/': (spec) => spec.url.includes(encodeURIComponent(other))
+      ? reply(403, { message: 'Not enough permissions' })
+      : reply(200, { elements: [{ $URN: TOP, actor: 'urn:li:person:someoneElse', message: { text: 'Nice' } }] }),
+  });
+  const out = json(await call(config, transport, 'replies_sync', { posts: [P, other] }));
+  assert.deepEqual(out, { synced: true, read: 1, found: 1, waiting: 1, skipped: [other] });
+  assert.equal(existsSync(join(config.home, 'comments-read-refused')), false);
+  assert.equal((await call(config, transport, 'replies_sync', { posts: ['not a post'] })).isError, true);
+});
+
 test('replies_sync in a dry run returns the requests and writes nothing', async () => {
   const config = { ...liveConfig(), dryRun: true };
   const { transport, calls } = fakeLinkedIn();
