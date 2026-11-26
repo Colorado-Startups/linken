@@ -232,7 +232,7 @@ test('a warning writes the halt file and stops connections_next and post_publish
   await tool('archive_load', { path: exportFolder() });
   assert.equal((await tool('connections_next')).isError, undefined);
   await tool('connections_mark', { url: URL_OF('pat'), action: 'warning', note: 'We noticed unusual activity' });
-  assert.match(String(execFileSync('/bin/cat', [halt])), /unusual activity/);
+  assert.match(readFileSync(halt, 'utf8'), /unusual activity/);
   assert.match((await tool('connections_next')).text, /Halted/);
   assert.match((await tool('post_publish', { text: 'Hello' })).text, /Halted/);
 });
