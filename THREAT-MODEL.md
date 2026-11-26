@@ -20,7 +20,7 @@ flowchart LR
 | A prompt-injected Claude posts or comments | Every write shows a macOS dialog; Cancel is the default | `tests/helper.test.ts` "the gate" |
 | A session edits the server to leak the token | The server never holds it; every tool errors while it is in the server's environment | `tests/child-env.test.ts` |
 | A session edits the helper | Root-owned, outside any checkout | `install.sh` |
-| A swapped Node reads the token | `install.sh` refuses a Node the member can write | issue #2, `install.sh` |
+| A swapped Node reads the token | `install.sh` refuses a Node the member can write, before it runs it | issue #2, `tests/install.test.ts` |
 | The token on a command line (`ps`) | Launcher: fd 3 here-document; `linken-token`: `security -i` stdin | `tests/launcher.test.ts`, `tests/token.test.ts` |
 | The token sent to another host | Host pinning; no redirects; 3 headers at most | `tests/helper.test.ts` |
 | A message in the inbox steers Claude | Message text is returned as quoted data; Linken sends no message | `skills/linken-inbox` |

@@ -10,7 +10,7 @@ flowchart LR
 | Step | Do |
 | --- | --- |
 | 1. Install | Node 26 or newer. `git clone https://github.com/Colorado-Startups/linken && cd linken && npm ci` |
-| 2. Install the helper | `sudo ./install.sh`: 3 root-owned files and their SHA-256. It refuses a Node your account can write, and never touches a token |
+| 2. Install the helper | `sudo ./install.sh`: 3 root-owned files and their SHA-256. It refuses a Node your account can write, such as one from Homebrew, nvm or Volta, and never touches a token. With such a Node, install a root-owned one from [nodejs.org](https://nodejs.org/en/download) and name it: `sudo ./install.sh /usr/local/bin/node` |
 | 3. Create a LinkedIn app | In the [LinkedIn Developer Portal](https://www.linkedin.com/developers/apps), create an app named without "LinkedIn" or "In", linked to a Page you administer |
 | 4. Add products | On the app's Products tab, add **Share on LinkedIn** and **Sign In with LinkedIn using OpenID Connect** |
 | 5. Make a token | Developer Portal, Token Generator: pick `openid profile w_member_social`, then generate. Tokens last 60 days, with no refresh; repeat steps 5 and 6 to renew |
