@@ -8,4 +8,5 @@ test('quoted text is flagged, a done thread leaves the list, and a dry-run reply
   const m = await collect({ root: process.cwd() });
   for (const id of ['inbox.untrusted_flagged', 'inbox.mark_hides', 'inbox.reply_silent']) assert.equal(m[id].value, 100, id);
   assert.ok(m['inbox.thread_tokens'].value <= 100, 'answers stay small');
+  assert.ok(Number.isFinite(m['inbox.load_ms'].value), 'the load is timed');
 });

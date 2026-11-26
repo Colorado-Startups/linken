@@ -11,10 +11,10 @@ import { pathToFileURL } from 'node:url';
 
 export const area = 'inbox';
 
-const IDS = ['untrusted_flagged', 'mark_hides', 'reply_silent', 'next_ms', 'thread_tokens'].map((id) => `inbox.${id}`);
+const IDS = ['untrusted_flagged', 'mark_hides', 'reply_silent', 'load_ms', 'next_ms', 'thread_tokens'].map((id) => `inbox.${id}`);
 const tokens = (value) => Math.round(JSON.stringify(value).length / 4);
 
-/** Runs the inbox on the sample in a scratch folder and returns the five metrics, or could_not_check for each. */
+/** Runs the inbox on the sample in a scratch folder and returns the six metrics, or could_not_check for each. */
 export async function collect({ root }) {
   const read_at = new Date().toISOString();
   const work = mkdtempSync(join(tmpdir(), 'linken-inbox-'));
@@ -24,7 +24,9 @@ export async function collect({ root }) {
     execFileSync(process.execPath, [join(root, 'tools/sample-export.mjs'), join(work, 'sample')], { stdio: 'pipe' });
     const env = { LINKEN_HOME: join(work, 'home'), LINKEN_DRY_RUN: '1', LINKEN_HALT_FILE: join(work, 'halt') };
     const config = configFrom(env);
+    const loadStart = performance.now();
     await archiveLoad({ path: join(work, 'sample') }, config, env);
+    const loadMs = Math.round(performance.now() - loadStart);
     const start = performance.now();
     const first = inboxNext({ limit: 5 }, config);
     const ms = Math.round(performance.now() - start);
@@ -41,6 +43,7 @@ export async function collect({ root }) {
       'inbox.untrusted_flagged': value(flagged === 2 ? 100 : flagged * 50, 'state: two inbox_next answers checked for the untrusted-text warning'),
       'inbox.mark_hides': value(hidden ? 100 : 0, `state: one of ${first.waiting} waiting threads marked done, then inbox_next read again`),
       'inbox.reply_silent': value(reply.dry_run === true && desk.length === 0 ? 100 : 0, `state: one reply_open dry run; ${desk.length} clipboard or browser calls`),
+      'inbox.load_ms': value(loadMs, 'latest: one archive_load of the fictional sample export, wall clock'),
       'inbox.next_ms': value(ms, `latest: one inbox_next on the ${first.waiting}-thread fictional sample, wall clock`),
       'inbox.thread_tokens': value(Math.round(tokens(first) / first.threads.length), `state: one inbox_next answer of ${first.threads.length} threads, characters / 4 per thread`),
     };
