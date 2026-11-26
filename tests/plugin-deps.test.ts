@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -19,6 +19,13 @@ function dataWithFakePackage(): string {
   writeFileSync(join(pkg, 'package.json'), JSON.stringify({ name: 'linken-fake-dep', type: 'module', exports: './index.js' }));
   writeFileSync(join(pkg, 'index.js'), 'export const ok = "found";\n');
   return data;
+}
+
+/** A PATH whose npm always fails, then the system folders for cmp, cp and mkdir. */
+function failingNpm(): string {
+  const bin = mkdtempSync(join(tmpdir(), 'linken-npm-'));
+  writeFileSync(join(bin, 'npm'), '#!/bin/sh\nexit 1\n', { mode: 0o755 });
+  return `${bin}:/usr/bin:/bin`;
 }
 
 const script = 'const m = await import("linken-fake-dep"); console.log(m.ok);';
@@ -41,18 +48,18 @@ test('without LINKEN_DEPS the hook changes nothing: the package stays not found'
 
 test('deps.sh does nothing when the data folder already holds this lockfile and node_modules', () => {
   const data = dataWithFakePackage();
-  copyFileSync(join(repo, 'package-lock.json'), join(data, 'package-lock.json'));
-  // Only the system folders on PATH: an npm call would most likely fail and print the warning.
-  const run = spawnSync('/bin/sh', [join(repo, 'plugin/deps.sh'), repo, data], { env: { PATH: '/usr/bin:/bin' }, encoding: 'utf8' });
+  copyFileSync(join(repo, 'package-lock.json'), join(data, '.linken-installed-lock'));
+  const run = spawnSync('/bin/sh', [join(repo, 'plugin/deps.sh'), repo, data], { env: { PATH: failingNpm() }, encoding: 'utf8' });
   assert.equal(run.status, 0);
   assert.equal(run.stderr, '');
 });
 
-test('deps.sh warns and still exits 0 when npm cannot run, so the session starts', () => {
-  const data = mkdtempSync(join(tmpdir(), 'linken-deps-'));
-  const run = spawnSync('/bin/sh', [join(repo, 'plugin/deps.sh'), repo, data], { env: { PATH: '/bin:/usr/bin', HOME: data }, encoding: 'utf8' });
+test('deps.sh warns, writes no marker and still exits 0 when npm fails, so the next session tries again', () => {
+  const data = dataWithFakePackage();
+  const run = spawnSync('/bin/sh', [join(repo, 'plugin/deps.sh'), repo, data], { env: { PATH: failingNpm() }, encoding: 'utf8' });
   assert.equal(run.status, 0);
-  if (run.stderr) assert.match(run.stderr, /could not install its dependencies/);
+  assert.match(run.stderr, /could not install its dependencies/);
+  assert.equal(existsSync(join(data, '.linken-installed-lock')), false);
 });
 
 test('the plugin starts the server through the hook, with the data folder as LINKEN_DEPS', () => {
