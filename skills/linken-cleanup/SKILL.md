@@ -5,7 +5,7 @@ description: Rate and clean up LinkedIn connections with the Linken MCP server, 
 
 # Clean up LinkedIn connections
 
-LinkedIn has no API to remove a connection. Linken rates and paces; the member, or their browser agent, clicks Remove. Goal: keep everyone who matters. Who goes: `docs/decide.md`.
+LinkedIn has no API to remove a connection. Linken rates and paces; the member, or their browser agent, clicks Remove. Goal: keep everyone who matters. Who goes: [docs/decide.md](https://github.com/Colorado-Startups/linken/blob/main/docs/decide.md).
 
 ```mermaid
 flowchart LR
