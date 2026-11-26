@@ -3,7 +3,7 @@
 set -eu
 MIN=26
 [ "$(id -u)" = 0 ] || { echo "Run with sudo: sudo ./install.sh" >&2; exit 1; }
-[ "$(uname)" = Darwin ] || { echo "Link supports macOS only." >&2; exit 1; }
+[ "$(uname)" = Darwin ] || { echo "Linken supports macOS only." >&2; exit 1; }
 cd "$(dirname "$0")"
 U="${SUDO_USER:-}"; [ -n "$U" ] && [ "$U" != root ] || { echo "Run it with sudo from your own account." >&2; exit 1; }
 NODE="$(su -l "$U" -c 'command -v node' 2>/dev/null | tail -n 1)"
