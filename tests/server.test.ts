@@ -19,7 +19,7 @@ test('lists exactly the thirteen tools, each with a title, a description and its
   }
   const [status, publish] = tools;
   for (const tool of tools.slice(3, -1)) assert.equal(tool.annotations.openWorldHint, false, `${tool.name} does not touch LinkedIn`);
-  assert.deepEqual(status.annotations, { readOnlyHint: true });
+  assert.deepEqual(status.annotations, { readOnlyHint: true, openWorldHint: true });
   assert.deepEqual(publish.annotations, { readOnlyHint: false, destructiveHint: false, openWorldHint: true });
 });
 

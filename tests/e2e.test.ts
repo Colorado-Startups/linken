@@ -74,13 +74,14 @@ before(async () => {
 test('over stdio the server answers initialize, then tools/list returns exactly the thirteen tools', () => {
   assert.equal(initialize.result.protocolVersion, '2025-11-25');
   assert.equal(initialize.result.serverInfo.name, 'linken');
+  assert.match(initialize.result.instructions, /Call linken_status first/);
   const version = (file: string) => JSON.parse(readFileSync(path(file), 'utf8')).version;
   assert.equal(initialize.result.serverInfo.version, version('../package.json'));
   assert.equal(initialize.result.serverInfo.version, version('../.claude-plugin/plugin.json'));
   assert.deepEqual(
     tools.result.tools.slice(0, 2).map(({ name, annotations }: Message) => ({ name, annotations })),
     [
-      { name: 'linken_status', annotations: { readOnlyHint: true } },
+      { name: 'linken_status', annotations: { readOnlyHint: true, openWorldHint: true } },
       { name: 'post_publish', annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true } },
     ],
   );
