@@ -49,6 +49,7 @@ flowchart LR
 | 📊 Quality | <https://colorado-startups.github.io/linken/> |
 | ⚙️ Process | <https://colorado-startups.github.io/linken/process.html> |
 | 🔧 Setup | [docs/setup.md](docs/setup.md) |
+| 🎯 Spec | [SPEC.md](SPEC.md) |
 | 🧭 How it decides | [docs/decide.md](docs/decide.md) |
 | 🧹 Clean-up guide | [docs/connections.md](docs/connections.md) |
 | 🧩 Code | `src/` server · `rules/` word lists · `tests/` · `quality/` scores |
